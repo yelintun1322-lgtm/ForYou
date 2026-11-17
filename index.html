@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ကိုယ့်ရဲ့ ကမ္ဘာလေးအတွက် ❤️</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Padauk & Noto Sans Myanmar for clean Burmese typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;600;700&family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Tone.js for gentle romantic chimes (synthesized, no external audio needed) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        /* Custom Fonts & Base Styling */
+        body {
+            font-family: 'Noto Sans Myanmar', 'Padauk', sans-serif;
+            overflow: hidden;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Soft Animated Pastel Gradient Background */
+        .romantic-bg {
+            background: linear-gradient(-45deg, #ffe4e6, #fce7f3, #f3e8ff, #ffe4e6);
+            background-size: 400% 400%;
+            animation: gradientFlow 12s ease infinite;
+        }
+
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glowing 3D-like Heart Button Animation */
+        .heart-beat {
+            animation: heartbeat 1.4s infinite ease-in-out;
+            filter: drop-shadow(0 12px 25px rgba(244, 63, 94, 0.45));
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .heart-beat:active {
+            transform: scale(0.88);
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.12); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.12); }
+            70% { transform: scale(1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Floating Sparkle Ring around Heart */
+        .pulse-ring {
+            animation: pulseRing 2.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        @keyframes pulseRing {
+            0% { transform: scale(0.85); opacity: 0.7; }
+            100% { transform: scale(1.75); opacity: 0; }
+        }
+
+        /* Message Card Reveal Animation */
+        .card-reveal {
+            animation: cardPop 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes cardPop {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Floating Tap-Spawned Emojis */
+        .tap-float {
+            position: fixed;
+            pointer-events: none;
+            z-index: 50;
+            animation: floatUpFade 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes floatUpFade {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -110px) scale(1.25) rotate(12deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -200px) scale(0.9) rotate(-12deg);
+            }
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1.5px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 20px 50px rgba(244, 63, 94, 0.18), 0 4px 15px rgba(236, 72, 153, 0.1);
+        }
+
+        /* Custom Scrollbar for Edit Modal */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f9a8d4;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="romantic-bg relative w-screen h-screen flex flex-col items-center justify-center overflow-hidden text-rose-950">
+
+    <!-- Background & Falling Hearts/Petals Canvas -->
+    <canvas id="loveCanvas" class="fixed inset-0 w-full h-full pointer-events-none z-10"></canvas>
+
+    <!-- Subtle Top-Right Sender Customization Button -->
+    <div class="fixed top-4 right-4 z-40 flex items-center gap-2">
+        <button id="soundToggleBtn" title="အသံဖွင့်/ပိတ်" class="p-2.5 rounded-full bg-white/60 hover:bg-white/90 text-rose-500 shadow-sm backdrop-blur-md transition active:scale-95">
+            <!-- Sound On Icon -->
+            <svg id="soundIconOn" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+            </svg>
+            <!-- Sound Off Icon (Hidden by default) -->
+            <svg id="soundIconOff" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <line x1="23" y1="9" x2="17" y2="15"></line>
+                <line x1="17" y1="9" x2="23" y2="15"></line>
+            </svg>
+        </button>
+        <button id="openEditBtn" title="စာသားပြင်ရန်" class="px-3 py-2 rounded-full bg-white/60 hover:bg-white/90 text-rose-500 text-xs font-medium shadow-sm backdrop-blur-md flex items-center gap-1.5 transition active:scale-95">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+            <span>ပြင်ရန်</span>
+        </button>
+    </div>
+
+    <!-- Main Interactive Stage -->
+    <main class="relative z-20 w-full max-w-md px-5 flex flex-col items-center justify-center text-center">
+
+        <!-- STAGE 1: Initial Interactive Beating Heart -->
+        <div id="introStage" class="flex flex-col items-center justify-center transition-all duration-500">
+            <div class="relative flex items-center justify-center mb-6">
+                <!-- Soft Glowing Pulse Rings -->
+                <div class="absolute w-36 h-36 rounded-full bg-rose-300/40 pulse-ring"></div>
+                <div class="absolute w-28 h-28 rounded-full bg-pink-400/30 pulse-ring" style="animation-delay: 0.7s;"></div>
+
+                <!-- Interactive 3D-Styled Glossy Heart SVG Button -->
+                <button id="mainHeartBtn" aria-label="နှိပ်ကြည့်ပါ" class="relative z-10 heart-beat focus:outline-none cursor-pointer p-3">
+                    <svg class="w-36 h-36 sm:w-40 sm:h-40" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <radialGradient id="heartGrad" cx="35%" cy="30%" r="70%">
+                                <stop offset="0%" stop-color="#ff8fa3"/>
+                                <stop offset="45%" stop-color="#f43f5e"/>
+                                <stop offset="100%" stop-color="#be123c"/>
+                            </radialGradient>
+                            <linearGradient id="glossGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.75"/>
+                                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Main Heart Shape -->
+                        <path d="M100 176 C100 176 22 126 22 68 C22 40 44 20 70 20 C86 20 96 29 100 38 C104 29 114 20 130 20 C156 20 178 40 178 68 C178 126 100 176 100 176 Z" fill="url(#heartGrad)"/>
+                        <!-- Cute Glossy Reflection -->
+                        <ellipse cx="62" cy="52" rx="18" ry="10" transform="rotate(-32 62 52)" fill="url(#glossGrad)"/>
+                        <circle cx="46" cy="70" r="4" fill="#ffffff" fill-opacity="0.6"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Sweet Burmese Prompt Badge -->
+            <div class="bg-white/80 backdrop-blur-md px-6 py-3 rounded-full shadow-lg border border-pink-100 animate-bounce">
+                <p class="text-base sm:text-lg font-semibold text-rose-600 tracking-wide">
+                    ဒီလေးကို နှိပ်ကြည့်ပါဦး ❤️
+                </p>
+            </div>
+            <p class="mt-3 text-xs sm:text-sm text-rose-500/80 font-medium">
+                (မင်းအတွက် လက်ဆောင်လေး တစ်ခုရှိတယ် ✨)
+            </p>
+        </div>
+
+        <!-- STAGE 2: Romantic Message Card (Revealed after tapping heart) -->
+        <div id="messageStage" class="hidden w-full">
+            <div class="glass-card rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden">
+                <!-- Decorative Corner Cute Icons -->
+                <div class="absolute -top-3 -left-3 text-3xl opacity-80 rotate-[-15deg] pointer-events-none">🌸</div>
+                <div class="absolute -top-2 -right-2 text-3xl opacity-80 rotate-[15deg] pointer-events-none">✨</div>
+                <div class="absolute -bottom-2 -left-2 text-2xl opacity-80 pointer-events-none">🧸</div>
+                <div class="absolute -bottom-2 -right-2 text-2xl opacity-80 pointer-events-none">💖</div>
+
+                <!-- Cute Header Icon -->
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-rose-400 to-pink-300 text-3xl shadow-md mb-4 animate-pulse">
+                    🥰
+                </div>
+
+                <!-- Recipient Title -->
+                <h1 id="displayRecipient" class="text-xl sm:text-2xl font-bold text-rose-600 mb-3 leading-snug">
+                    ကိုယ့်ရဲ့ ကမ္ဘာလေး... ❤️
+                </h1>
+
+                <!-- Divider -->
+                <div class="flex items-center justify-center gap-2 my-3">
+                    <span class="h-[1px] w-12 bg-rose-300/70"></span>
+                    <span class="text-rose-400 text-xs">🌸 💖 🌸</span>
+                    <span class="h-[1px] w-12 bg-rose-300/70"></span>
+                </div>
+
+                <!-- Romantic Message Body -->
+                <p id="displayMessage" class="text-base sm:text-lg text-rose-900/90 leading-relaxed font-medium my-4 whitespace-pre-line">
+                    အမြဲတမ်း ပျော်ရွှင်နေပါစေနော်... 
+မင်းပြုံးနေတာလေးက ကိုယ့်အတွက် အလှပဆုံးပါပဲ။ 
+အရမ်းချစ်တယ်နော် အသည်းလေး ❤️✨
+                </p>
+
+                <!-- Sender Signature -->
+                <p id="displaySender" class="text-sm font-semibold text-pink-600 mt-4">
+                    — မင်းကို အမြဲချစ်နေမယ့် ကိုယ် ❤️
+                </p>
+
+                <!-- Interactive Action Buttons -->
+                <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+                    <button id="showerMoreBtn" class="px-5 py-2.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white text-sm font-semibold shadow-md shadow-rose-300/50 flex items-center gap-2 transition transform active:scale-95 cursor-pointer">
+                        <span>အသည်းတွေ ထပ်ကြဲမယ်</span>
+                        <span>💖</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bottom Hint for Screen Tapping -->
+            <div class="mt-5 inline-block bg-white/65 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/80 shadow-sm">
+                <p class="text-xs sm:text-sm text-rose-600 font-medium">
+                    ✨ မျက်နှာပြင် ဘယ်နေရာမဆို ထပ်နှိပ်ကြည့်ပါဦး 💕
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Sender Customization Modal (Hidden by default) -->
+    <div id="editModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-rose-950/40 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl border border-pink-100 card-reveal">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-rose-600 flex items-center gap-2">
+                    <span>💌</span>
+                    <span>စာသားလေး ပြင်ဆင်ရန်</span>
+                </h2>
+                <button id="closeEditBtn" class="p-1.5 rounded-full hover:bg-rose-50 text-rose-400 hover:text-rose-600 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold text-rose-700 mb-1">ကောင်မလေးကို ခေါ်ချင်တဲ့ နာမည် / ခေါင်းစဉ်</label>
+                    <input id="inputRecipient" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-200 outline-none text-sm text-rose-950" placeholder="ဥပမာ - ကိုယ့်ရဲ့ ကမ္ဘာလေး... ❤️">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-rose-700 mb-1">ပြောချင်တဲ့ စကားလေးများ</label>
+                    <textarea id="inputMessage" rows="4" class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-200 outline-none text-sm text-rose-950 resize-none" placeholder="ချစ်စရာ စာသားလေး ရေးပါ..."></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-rose-700 mb-1">ပို့သူ နာမည်</label>
+                    <input id="inputSender" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-200 outline-none text-sm text-rose-950" placeholder="ဥပမာ - မင်းကို အမြဲချစ်နေမယ့် ကိုယ် ❤️">
+                </div>
+            </div>
+
+            <!-- Copy Shareable Link with Custom Text -->
+            <div class="mt-5 pt-4 border-t border-pink-100 flex flex-col gap-2.5">
+                <button id="saveAndPreviewBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white text-sm font-semibold shadow-md transition active:scale-98">
+                    သိမ်းဆည်းပြီး ကြည့်မယ် 💖
+                </button>
+                <button id="copyLinkBtn" class="w-full py-2.5 rounded-xl bg-pink-50 hover:bg-pink-100 text-rose-600 text-xs font-semibold border border-pink-200 flex items-center justify-center gap-1.5 transition active:scale-98">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <span id="copyLinkText">ဒီစာသားတွေပါတဲ့ Link ကို Copy ကူးမယ်</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Box (Replaces alert) -->
+    <div id="toastBox" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden px-5 py-2.5 rounded-full bg-rose-600 text-white text-xs sm:text-sm font-medium shadow-lg transition-opacity duration-300">
+        Link ကို Copy ကူးပြီးပါပြီ ❤️
+    </div>
+
+    <script>
+        /**
+         * Romantic Interactive Webpage Script
+         * Handles particle physics (falling hearts, cherry blossoms, sparkles),
+         * tap interactions, URL parameter personalization, and synthesized chimes.
+         */
+
+        // --- 1. State & Personalization Data ---
+        const defaultData = {
+            to: "ကိုယ့်ရဲ့ ကမ္ဘာလေး... ❤️",
+            msg: "အမြဲတမ်း ပျော်ရွှင်နေပါစေနော်...\nမင်းပြုံးနေတာလေးက ကိုယ့်အတွက် အလှပဆုံးပါပဲ။\nအရမ်းချစ်တယ်နော် အသည်းလေး ❤️✨",
+            from: "— မင်းကို အမြဲချစ်နေမယ့် ကိုယ် ❤️"
+        };
+
+        let currentData = { ...defaultData };
+        let isCardOpened = false;
+        let soundEnabled = true;
+        let synth = null;
+
+        // Cute love notes & emojis that pop up when tapping anywhere on the screen
+        const tapEmojis = ["💖", "🌸", "✨", "🥰", "🧸", "💕", "💗", "🌷", "💓", "🎀"];
+        const cuteLoveNotes = [
+            "ချစ်တယ် ❤️",
+            "အသည်းလေး 💖",
+            "လွမ်းတယ် 🌸",
+            "မွမွ 😘",
+            "ပျော်ရွှင်ပါစေ ✨",
+            "အလှဆုံးလေး 🌷",
+            "ကိုယ့်ကမ္ဘာလေး 💕"
+        ];
+
+        // --- 2. Load Custom Message from URL Params or LocalStorage ---
+        function loadPersonalization() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const savedLocal = JSON.parse(localStorage.getItem('romantic_card_data') || 'null');
+
+                if (params.has('to') || params.has('msg') || params.has('from')) {
+                    currentData.to = params.get('to') || defaultData.to;
+                    currentData.msg = params.get('msg') || defaultData.msg;
+                    currentData.from = params.get('from') || defaultData.from;
+                } else if (savedLocal) {
+                    currentData = { ...defaultData, ...savedLocal };
+                }
+            } catch (e) {
+                console.warn("Could not parse custom parameters:", e);
+            }
+            updateDisplayTexts();
+        }
+
+        function updateDisplayTexts() {
+            document.getElementById('displayRecipient').textContent = currentData.to;
+            document.getElementById('displayMessage').textContent = currentData.msg;
+            document.getElementById('displaySender').textContent = currentData.from;
+        }
+
+        // --- 3. Gentle Synthesized Music Box Chime (Tone.js) ---
+        async function playCuteChime(isBigBurst = false) {
+            if (!soundEnabled || typeof Tone === 'undefined') return;
+            try {
+                if (Tone.context.state !== 'running') {
+                    await Tone.start();
+                }
+                if (!synth) {
+                    synth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: "sine" },
+                        envelope: { attack: 0.02, decay: 0.3, sustain: 0.1, release: 1.2 },
+                        volume: -12
+                    }).toDestination();
+                }
+
+                const now = Tone.now();
+                if (isBigBurst) {
+                    // Sweet romantic arpeggio chord (C Major 9)
+                    synth.triggerAttackRelease("C5", "8n", now);
+                    synth.triggerAttackRelease("E5", "8n", now + 0.09);
+                    synth.triggerAttackRelease("G5", "8n", now + 0.18);
+                    synth.triggerAttackRelease("B5", "8n", now + 0.27);
+                    synth.triggerAttackRelease("D6", "4n", now + 0.36);
+                } else {
+                    // Single soft sparkle note
+                    const notes = ["C5", "D5", "E5", "G5", "A5", "C6"];
+                    const randomNote = notes[Math.floor(Math.random() * notes.length)];
+                    synth.triggerAttackRelease(randomNote, "16n", now);
+                }
+            } catch (err) {
+                // Ignore audio errors if blocked by browser autoplay policy
+            }
+        }
+
+        // --- 4. Canvas Particle Engine (Hearts, Cherry Blossoms, Sparkles) ---
+        const canvas = document.getElementById('loveCanvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        const particles = [];
+        const heartColors = ['#f43f5e', '#ec4899', '#fb7185', '#f472b6', '#e11d48', '#fda4af'];
+        const petalColors = ['#fbcfe8', '#f9a8d4', '#fce7f3', '#fda4af'];
+
+        class LoveParticle {
+            constructor(x, y, mode = 'ambient') {
+                this.mode = mode; // 'ambient' (gentle float), 'shower' (falling rain), 'burst' (explosion)
+                this.x = x !== undefined ? x : Math.random() * width;
+                this.y = y !== undefined ? y : (mode === 'shower' ? -20 - Math.random() * 150 : Math.random() * height);
+                
+                // Type: 0 = Heart, 1 = Cherry Blossom Petal, 2 = Sparkle Star
+                const randType = Math.random();
+                this.type = randType < 0.55 ? 0 : (randType < 0.85 ? 1 : 2);
+
+                this.size = mode === 'burst' 
+                    ? (10 + Math.random() * 14) 
+                    : (8 + Math.random() * 12);
+
+                if (mode === 'burst') {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 3 + Math.random() * 9;
+                    this.vx = Math.cos(angle) * speed;
+                    this.vy = Math.sin(angle) * speed - 3;
+                    this.gravity = 0.14;
+                } else if (mode === 'shower') {
+                    this.vx = (Math.random() - 0.5) * 1.6;
+                    this.vy = 1.6 + Math.random() * 2.8;
+                    this.gravity = 0;
+                } else {
+                    // Ambient gentle floating
+                    this.vx = (Math.random() - 0.5) * 0.6;
+                    this.vy = -0.4 - Math.random() * 0.7;
+                    this.gravity = 0;
+                }
+
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.05;
+                this.swayOffset = Math.random() * Math.PI * 2;
+                this.alpha = mode === 'ambient' ? (0.35 + Math.random() * 0.4) : 0.95;
+                this.color = this.type === 1 
+                    ? petalColors[Math.floor(Math.random() * petalColors.length)]
+                    : heartColors[Math.floor(Math.random() * heartColors.length)];
+            }
+
+            update() {
+                this.swayOffset += 0.03;
+                this.vy += this.gravity;
+                this.x += this.vx + Math.sin(this.swayOffset) * 0.6;
+                this.y += this.vy;
+                this.rotation += this.rotationSpeed;
+
+                if (this.mode === 'burst') {
+                    this.vx *= 0.98;
+                    this.alpha -= 0.008;
+                } else if (this.mode === 'ambient') {
+                    if (this.y < -30) {
+                        this.y = height + 30;
+                        this.x = Math.random() * width;
+                    }
+                }
+            }
+
+            draw() {
+                if (this.alpha <= 0) return;
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.globalAlpha = Math.max(0, this.alpha);
+
+                if (this.type === 0) {
+                    // Draw Smooth Heart
+                    const s = this.size / 15;
+                    ctx.scale(s, s);
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 6);
+                    ctx.bezierCurveTo(0, 0, -10, -8, -15, 0);
+                    ctx.bezierCurveTo(-20, 8, -10, 18, 0, 24);
+                    ctx.bezierCurveTo(10, 18, 20, 8, 15, 0);
+                    ctx.bezierCurveTo(10, -8, 0, 0, 0, 6);
+                    ctx.fill();
+                } else if (this.type === 1) {
+                    // Draw Cherry Blossom Petal
+                    const s = this.size / 12;
+                    ctx.scale(s, s);
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -12);
+                    ctx.bezierCurveTo(10, -6, 10, 8, 0, 14);
+                    ctx.bezierCurveTo(-10, 8, -10, -6, 0, -12);
+                    ctx.fill();
+                } else {
+                    // Draw Four-Point Sparkle
+                    const s = this.size * 0.75;
+                    ctx.fillStyle = '#fffbeb';
+                    ctx.shadowColor = '#f472b6';
+                    ctx.shadowBlur = 8;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -s);
+                    ctx.quadraticCurveTo(0, 0, s, 0);
+                    ctx.quadraticCurveTo(0, 0, 0, s);
+                    ctx.quadraticCurveTo(0, 0, -s, 0);
+                    ctx.quadraticCurveTo(0, 0, 0, -s);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // Initialize gentle background floating hearts
+        for (let i = 0; i < 28; i++) {
+            particles.push(new LoveParticle(undefined, undefined, 'ambient'));
+        }
+
+        // Trigger massive burst + falling shower of hearts & petals
+        function triggerLoveShower(originX = width / 2, originY = height / 2, intensity = 55) {
+            // 1. Center explosion burst
+            for (let i = 0; i < intensity; i++) {
+                particles.push(new LoveParticle(originX, originY, 'burst'));
+            }
+            // 2. Top-down falling rain of hearts and cherry blossoms
+            for (let i = 0; i < intensity + 20; i++) {
+                const rx = Math.random() * width;
+                const ry = -20 - Math.random() * (height * 0.6);
+                particles.push(new LoveParticle(rx, ry, 'shower'));
+            }
+        }
+
+        // Animation Loop
+        function animateCanvas() {
+            ctx.clearRect(0, 0, width, height);
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw();
+
+                // Clean up off-screen shower or faded burst particles
+                if ((p.mode === 'shower' && p.y > height + 40) || (p.mode === 'burst' && p.alpha <= 0)) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(animateCanvas);
+        }
+
+        // --- 5. DOM Floating Emoji & Love Note Spawner on Tap ---
+        function spawnTapFloatingElement(x, y, showNote = false) {
+            const el = document.createElement('div');
+            el.className = 'tap-float font-bold select-none';
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+
+            if (showNote && Math.random() < 0.35) {
+                // Spawn a sweet mini Burmese love pill
+                const note = cuteLoveNotes[Math.floor(Math.random() * cuteLoveNotes.length)];
+                el.innerHTML = `<span class="px-3 py-1 rounded-full bg-white/90 text-rose-600 text-xs sm:text-sm shadow-md border border-pink-200 whitespace-nowrap">${note}</span>`;
+            } else {
+                // Spawn a cute emoji
+                const emoji = tapEmojis[Math.floor(Math.random() * tapEmojis.length)];
+                el.style.fontSize = `${24 + Math.random() * 14}px`;
+                el.textContent = emoji;
+            }
+
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1800);
+        }
+
+        // --- 6. Interactive Event Listeners ---
+        const mainHeartBtn = document.getElementById('mainHeartBtn');
+        const introStage = document.getElementById('introStage');
+        const messageStage = document.getElementById('messageStage');
+        const showerMoreBtn = document.getElementById('showerMoreBtn');
+
+        // Open Romantic Card on Center Heart Tap
+        mainHeartBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rect = mainHeartBtn.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            playCuteChime(true);
+            triggerLoveShower(centerX, centerY, 65);
+
+            // Spawn burst of floating emojis around the heart
+            for (let i = 0; i < 8; i++) {
+                const offsetX = centerX + (Math.random() - 0.5) * 140;
+                const offsetY = centerY + (Math.random() - 0.5) * 100;
+                spawnTapFloatingElement(offsetX, offsetY, false);
+            }
+
+            // Transition from Heart Prompt to Romantic Card
+            introStage.classList.add('opacity-0', 'scale-75', 'pointer-events-none');
+            setTimeout(() => {
+                introStage.classList.add('hidden');
+                messageStage.classList.remove('hidden');
+                messageStage.classList.add('card-reveal');
+                isCardOpened = true;
+            }, 300);
+        });
+
+        // "Shower More Hearts" Button inside Card
+        showerMoreBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rect = showerMoreBtn.getBoundingClientRect();
+            playCuteChime(true);
+            triggerLoveShower(rect.left + rect.width / 2, rect.top, 55);
+            spawnTapFloatingElement(e.clientX, e.clientY, true);
+        });
+
+        // Tap Anywhere on Screen for More Hearts & Sweet Notes
+        document.addEventListener('pointerdown', (e) => {
+            // Ignore clicks inside modal or top-right control buttons
+            if (e.target.closest('#editModal') || e.target.closest('#openEditBtn') || e.target.closest('#soundToggleBtn')) {
+                return;
+            }
+
+            playCuteChime(false);
+            spawnTapFloatingElement(e.clientX, e.clientY, isCardOpened);
+
+            // Small burst of canvas hearts at tap point
+            for (let i = 0; i < 8; i++) {
+                particles.push(new LoveParticle(e.clientX, e.clientY, 'burst'));
+            }
+        });
+
+        // --- 7. Sound Toggle ---
+        const soundToggleBtn = document.getElementById('soundToggleBtn');
+        const soundIconOn = document.getElementById('soundIconOn');
+        const soundIconOff = document.getElementById('soundIconOff');
+
+        soundToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            soundEnabled = !soundEnabled;
+            soundIconOn.classList.toggle('hidden', !soundEnabled);
+            soundIconOff.classList.toggle('hidden', soundEnabled);
+            if (soundEnabled) playCuteChime(false);
+        });
+
+        // --- 8. Sender Edit & Share Link Modal Logic ---
+        const editModal = document.getElementById('editModal');
+        const openEditBtn = document.getElementById('openEditBtn');
+        const closeEditBtn = document.getElementById('closeEditBtn');
+        const inputRecipient = document.getElementById('inputRecipient');
+        const inputMessage = document.getElementById('inputMessage');
+        const inputSender = document.getElementById('inputSender');
+        const saveAndPreviewBtn = document.getElementById('saveAndPreviewBtn');
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+        const toastBox = document.getElementById('toastBox');
+
+        function showToast(msg) {
+            toastBox.textContent = msg;
+            toastBox.classList.remove('hidden');
+            setTimeout(() => {
+                toastBox.classList.add('hidden');
+            }, 2500);
+        }
+
+        openEditBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            inputRecipient.value = currentData.to;
+            inputMessage.value = currentData.msg;
+            inputSender.value = currentData.from;
+            editModal.classList.remove('hidden');
+            editModal.classList.add('flex');
+        });
+
+        closeEditBtn.addEventListener('click', () => {
+            editModal.classList.add('hidden');
+            editModal.classList.remove('flex');
+        });
+
+        saveAndPreviewBtn.addEventListener('click', () => {
+            currentData.to = inputRecipient.value.trim() || defaultData.to;
+            currentData.msg = inputMessage.value.trim() || defaultData.msg;
+            currentData.from = inputSender.value.trim() || defaultData.from;
+
+            try {
+                localStorage.setItem('romantic_card_data', JSON.stringify(currentData));
+            } catch (e) {}
+
+            updateDisplayTexts();
+            editModal.classList.add('hidden');
+            editModal.classList.remove('flex');
+            triggerLoveShower(width / 2, height / 2, 40);
+            showToast("စာသားလေး ပြင်ဆင်ပြီးပါပြီ ❤️");
+        });
+
+        copyLinkBtn.addEventListener('click', () => {
+            const toVal = inputRecipient.value.trim() || defaultData.to;
+            const msgVal = inputMessage.value.trim() || defaultData.msg;
+            const fromVal = inputSender.value.trim() || defaultData.from;
+
+            const url = new URL(window.location.href.split('?')[0]);
+            url.searchParams.set('to', toVal);
+            url.searchParams.set('msg', msgVal);
+            url.searchParams.set('from', fromVal);
+
+            // Copy using fallback-safe textarea + execCommand
+            const tempInput = document.createElement('textarea');
+            tempInput.value = url.toString();
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                showToast("ကောင်မလေးဆီ ပို့ဖို့ Link ကို Copy ကူးပြီးပါပြီ ❤️");
+            } catch (err) {
+                showToast("Link Copy ကူးမရပါ၊ URL ကို ကိုယ်တိုင်ကူးယူပါ");
+            }
+            document.body.removeChild(tempInput);
+        });
+
+        // Start on Window Load
+        window.onload = function() {
+            loadPersonalization();
+            animateCanvas();
+        };
+    </script>
+</body>
+</html>
